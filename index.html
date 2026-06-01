@@ -264,9 +264,9 @@ const ESTILOS = [
     afirmacoes: [
       'Estabeleço padrões muito altos.',
       'Dou exemplo trabalhando intensamente.',
-      'Tenho baixa tolerância a erros.',
+      'Valorizo demonstrações de trabalho intenso.',
       'Assumo tarefas quando alguém não entrega.',
-      'Espero autonomia imediata da equipe.'
+      'Espero autonomia da minha equipe.'
     ]
   },
   {
@@ -556,7 +556,7 @@ function generatePDF() {
         doc.setFont('helvetica', 'normal');
         doc.setTextColor(100, 100, 100);
         doc.text('Pontuação: ' + e.score + ' / 25', margin + 4, cy + 4);
-        cy += 5;
+        cy += 9;
 
         // Descrição
         doc.setFontSize(9.5);
