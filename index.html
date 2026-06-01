@@ -1,0 +1,575 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Assessment: Estilos de Liderança</title>
+<link href="https://fonts.googleapis.com/css2?family=Raleway:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<style>
+  :root {
+    --accent: #007BEA;
+    --accent-dark: #001B71;
+    --accent-light: #B3DFFF;
+    --text: #210000;
+    --text-light: #666666;
+    --border: #e0e0e0;
+    --bg: #ffffff;
+    --bg-soft: #f4f8fe;
+    --selected-bg: #ebf5ff;
+    --selected-border: #007BEA;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    font-family: 'Aptos', 'Segoe UI', sans-serif;
+    color: var(--text);
+    min-height: 100vh;
+  }
+
+  /* Progress bar */
+  #progress-bar-wrap {
+    position: fixed; top: 0; left: 0; width: 100%; height: 4px;
+    background: #e0e0e0; z-index: 100; display: none;
+  }
+  #progress-bar { height: 100%; background: var(--accent); transition: width 0.4s ease; width: 0%; }
+
+  /* Screens */
+  .screen { display: none; max-width: 680px; margin: 0 auto; padding: 48px 24px 80px; animation: fadeIn 0.35s ease; }
+  .screen.active { display: block; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+  /* Image placeholder */
+  .img-placeholder { width: 100%; margin-bottom: 28px; overflow: hidden; }
+  .img-placeholder.empty {
+    aspect-ratio: 16/9; background: var(--bg-soft); border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    border: 2px dashed var(--border); color: var(--text-light);
+    font-size: 14px; flex-direction: column; gap: 8px;
+  }
+  .img-placeholder img { display: block; width: 100%; height: auto; border-radius: 0; }
+
+  /* Titles */
+  h1 { font-family: 'Raleway', sans-serif; font-weight: 800; color: var(--accent); font-size: clamp(22px, 5vw, 32px); margin-bottom: 16px; line-height: 1.2; }
+  h2 { font-family: 'Raleway', sans-serif; font-weight: 700; color: var(--accent); font-size: clamp(18px, 4vw, 24px); margin-bottom: 12px; }
+
+  /* Body text */
+  p { font-size: clamp(14px, 2.3vw, 16px); line-height: 1.7; color: var(--text); margin-bottom: 12px; }
+
+  /* Buttons */
+  .btn-primary {
+    background: var(--accent); color: #fff; font-family: 'Raleway', sans-serif;
+    font-weight: 700; font-size: 15px; padding: 13px 28px; border: none;
+    border-radius: 8px; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; transition: background 0.2s;
+  }
+  .btn-primary:hover { background: #0063c5; }
+  .btn-primary:disabled { background: #ccc; cursor: not-allowed; }
+  .btn-back {
+    background: none; border: none; color: var(--text-light); font-family: 'Raleway', sans-serif;
+    font-weight: 600; font-size: 14px; cursor: pointer; padding: 8px 0; display: inline-flex; align-items: center; gap: 6px;
+  }
+  .btn-back:hover { color: var(--text); }
+  .btn-restart {
+    background: none; border: 1.5px solid var(--border); color: var(--text-light);
+    font-family: 'Raleway', sans-serif; font-weight: 600; font-size: 13px;
+    padding: 10px 20px; border-radius: 8px; cursor: pointer; display: block; width: 100%; margin-top: 8px;
+  }
+  .btn-restart:hover { border-color: var(--accent); color: var(--accent); }
+  .btn-row { display: flex; justify-content: space-between; align-items: center; margin-top: 28px; }
+
+  /* Cover */
+  .cover-tag {
+    display: inline-block; background: var(--bg-soft); border: 1.5px solid var(--accent-light);
+    color: var(--accent); font-size: 12px; font-weight: 700; font-family: 'Raleway', sans-serif;
+    padding: 4px 12px; border-radius: 20px; margin-bottom: 16px; text-transform: uppercase; letter-spacing: 0.5px;
+  }
+  .cover-meta { font-size: 13px; color: var(--text-light); margin-bottom: 20px; }
+
+  /* Question screen */
+  .q-label { font-size: 13px; color: var(--text-light); margin-bottom: 8px; font-weight: 600; }
+  .q-text { font-family: 'Raleway', sans-serif; font-weight: 700; font-size: clamp(16px, 3vw, 20px); color: var(--text); margin-bottom: 16px; line-height: 1.4; }
+  .q-hint {
+    background: var(--bg-soft); border-radius: 8px; padding: 10px 14px;
+    font-size: 13px; color: var(--text-light); margin-bottom: 20px;
+  }
+  .scale-options { display: flex; flex-direction: column; gap: 10px; margin-bottom: 8px; }
+  .scale-btn {
+    width: 100%; border-radius: 10px; border: 1.5px solid var(--border);
+    background: #fff; cursor: pointer; font-family: 'Aptos', 'Segoe UI', sans-serif;
+    font-weight: 600; font-size: 15px; color: var(--text-light); transition: all 0.18s ease;
+    display: flex; align-items: center; gap: 14px; padding: 13px 16px; text-align: left;
+  }
+  .scale-btn .scale-num {
+    font-family: 'Raleway', sans-serif; font-weight: 800; font-size: 15px;
+    color: #ccc; min-width: 22px; transition: color 0.18s;
+  }
+  .scale-btn:hover { border-color: var(--accent); color: var(--text); background: var(--bg-soft); }
+  .scale-btn:hover .scale-num { color: var(--accent); }
+  .scale-btn.selected { border-color: var(--accent); background: var(--selected-bg); color: var(--text); }
+  .scale-btn.selected .scale-num { color: var(--accent); }
+
+  /* Result */
+  .result-intro { font-size: 14px; color: var(--text-light); margin-bottom: 24px; line-height: 1.6; }
+  .result-card {
+    border: 1.5px solid var(--border); border-radius: 12px; padding: 20px; margin-bottom: 14px;
+  }
+  .result-card.top { border-color: var(--accent); background: var(--selected-bg); }
+  .result-rank { font-size: 11px; font-weight: 700; color: var(--text-light); text-transform: uppercase; letter-spacing: 0.5px; }
+  .result-card.top .result-rank { color: var(--accent); }
+  .result-name-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+  .result-pct { font-size: 14px; font-weight: 700; color: var(--accent); }
+  .result-name { font-family: 'Raleway', sans-serif; font-weight: 700; font-size: 17px; color: var(--text); display: flex; align-items: center; gap: 8px; }
+  .result-bar-bg { background: #e0e0e0; border-radius: 5px; height: 10px; margin-bottom: 10px; overflow: hidden; }
+  .result-bar-fill { height: 100%; border-radius: 5px; background: #999; transition: width 0.7s ease; }
+  .result-card.top .result-bar-fill { background: var(--accent); }
+  .result-desc { font-size: 13px; color: var(--text-light); line-height: 1.6; margin-bottom: 0; }
+
+  /* Score summary chart */
+  .mini-chart { display: flex; flex-direction: column; gap: 8px; margin: 20px 0; }
+  .mini-row { display: flex; align-items: center; gap: 10px; }
+  .mini-label { font-size: 12px; font-weight: 600; color: var(--text); min-width: 110px; }
+  .mini-bar-bg { flex: 1; background: #e8e8e8; border-radius: 4px; height: 14px; overflow: hidden; }
+  .mini-bar-fill { height: 100%; border-radius: 4px; background: var(--accent); transition: width 0.7s ease; }
+  .mini-score { font-size: 12px; color: var(--text-light); min-width: 36px; text-align: right; }
+
+  @media (max-width: 480px) {
+    .screen { padding: 36px 16px 80px; }
+    .scale-btn { width: 44px; height: 44px; font-size: 16px; }
+    .scale-options { gap: 6px; }
+  }
+</style>
+</head>
+<body>
+
+<div id="progress-bar-wrap"><div id="progress-bar"></div></div>
+
+<!-- CAPA -->
+<div class="screen active" id="screen-cover">
+  <div class="img-placeholder">
+    <img src="https://i.imgur.com/WA52l5F.png" alt="Estilos de Liderança">
+  </div>
+  <h1>Estilos de Liderança</h1>
+  <p class="cover-meta">Baseada na pesquisa de <strong>Daniel Goleman</strong> em parceria com a consultoria <strong>Hay/McBer</strong></p>
+  <p>Descubra seu estilo predominante de liderança e amplie seu repertório para liderar com mais <strong>consciência e impacto</strong>.</p>
+  <div class="q-hint" style="margin-top: 4px;">
+    <strong>Não existe estilo ideal.</strong> O que define a eficácia de quem lidera é compreender seu estilo predominante e saber <strong>alternar entre diferentes abordagens</strong> conforme a equipe, o momento e o contexto.
+  </div>
+  <div class="btn-row" style="justify-content:flex-end;">
+    <button class="btn-primary" onclick="goToScreen('screen-instructions')">Avançar →</button>
+  </div>
+</div>
+
+<!-- INSTRUÇÕES -->
+<div class="screen" id="screen-instructions">
+  <div class="img-placeholder">
+    <img src="https://i.imgur.com/GQ37w78.png" alt="Como responder">
+  </div>
+  <h2>Como responder</h2>
+  <p>Para cada afirmação, escolha o número que melhor representa a <strong>frequência com que você age dessa forma</strong> no seu dia a dia como liderança.</p>
+  <div class="q-hint">
+    <strong>Escala:</strong> 1 = Nunca &nbsp;|&nbsp; 2 = Quase nunca &nbsp;|&nbsp; 3 = Às vezes &nbsp;|&nbsp; 4 = Quase sempre &nbsp;|&nbsp; 5 = Sempre
+  </div>
+  <p style="color:var(--text-light); font-size:13px;">Não há respostas certas ou erradas. O que importa é a <strong>honestidade da sua autopercepção</strong>: responda com base no que realmente acontece, não no que você acredita ser o comportamento ideal.</p>
+  <div class="btn-row">
+    <button class="btn-back" onclick="goToScreen('screen-cover')">← Voltar</button>
+    <button class="btn-primary" onclick="startTest()">Iniciar Teste →</button>
+  </div>
+</div>
+
+<!-- QUESTÃO -->
+<div class="screen" id="screen-question">
+  <div class="q-label" id="q-label">Pergunta 1 de 30</div>
+  <div class="q-text" id="q-text"></div>
+  <div class="scale-options" id="scale-options"></div>
+  <div class="btn-row">
+    <button class="btn-back" onclick="prevQuestion()">← Voltar</button>
+    <button class="btn-primary" id="btn-next" onclick="nextQuestion()" disabled>Avançar →</button>
+  </div>
+</div>
+
+<!-- RESULTADO -->
+<div class="screen" id="screen-results">
+  <h1>Seu Resultado</h1>
+  <p class="result-intro">Confira abaixo a pontuação em cada estilo de liderança. O estilo com maior pontuação representa a sua tendência predominante. Lembre-se: a riqueza do resultado está no conjunto, não apenas no primeiro lugar.</p>
+  <div id="mini-chart" class="mini-chart"></div>
+  <div id="result-cards"></div>
+  <button class="btn-primary" id="btnDownload" onclick="generatePDF()" style="width:100%; justify-content:center; margin-bottom:12px; margin-top:8px;">
+    Baixar resultado em PDF
+  </button>
+  <button class="btn-restart" onclick="restartTest()">↺ Refazer o assessment</button>
+</div>
+
+<script>
+const SCALE_LABELS = ['', 'Nunca', 'Quase nunca', 'Às vezes', 'Quase sempre', 'Sempre'];
+
+const ESTILOS = [
+  {
+    id: 'diretivo', emoji: '🎯', nome: 'Diretivo',
+    cor: '#C0392B',
+    descricao: 'Quem lidera com esse estilo estabelece expectativas claras, toma decisões rápidas e monitora de perto a execução. É eficaz em momentos de crise ou quando a equipe precisa de direcionamento imediato, mas pode reduzir a iniciativa e a motivação se usado em excesso.',
+    afirmacoes: [
+      'Digo exatamente o que deve ser feito e como.',
+      'Intervenho rapidamente quando algo sai do esperado.',
+      'Prefiro decisões rápidas a discussões longas.',
+      'Monitoro de perto a execução.',
+      'Priorizo controle e disciplina operacional.'
+    ]
+  },
+  {
+    id: 'visionario', emoji: '🔭', nome: 'Visionário',
+    cor: '#8E44AD',
+    descricao: 'Quem lidera com esse estilo inspira ao conectar o trabalho diário ao propósito maior da organização. Comunica a direção estratégica com clareza e dá autonomia às pessoas para chegar lá. É um dos estilos de maior impacto positivo no clima organizacional.',
+    afirmacoes: [
+      'Comunico constantemente a direção estratégica.',
+      'Conecto decisões ao propósito da empresa.',
+      'Inspiro com possibilidades futuras.',
+      'Dou autonomia baseada em princípios claros.',
+      'Falo mais de "onde queremos chegar" do que de tarefas.'
+    ]
+  },
+  {
+    id: 'afiliativo', emoji: '🤝', nome: 'Afiliativo',
+    cor: '#E67E22',
+    descricao: 'Quem lidera com esse estilo coloca as pessoas em primeiro lugar e cultiva um ambiente de harmonia, pertencimento e confiança. É excelente em criar vínculos e reconhecer contribuições, mas pode ter dificuldade em lidar com baixo desempenho ou conflitos necessários.',
+    afirmacoes: [
+      'Priorizo harmonia e clima positivo.',
+      'Evito conflitos sempre que possível.',
+      'Reconheço pessoas frequentemente.',
+      'Procuro manter relações próximas.',
+      'Preocupo-me com bem-estar antes de resultados.'
+    ]
+  },
+  {
+    id: 'democratico', emoji: '🗳️', nome: 'Democrático',
+    cor: '#27AE60',
+    descricao: 'Quem lidera com esse estilo valoriza a participação, ouve diferentes perspectivas antes de decidir e facilita o consenso. Gera engajamento e senso de pertencimento, sendo especialmente útil quando a equipe é experiente e diversa em pontos de vista.',
+    afirmacoes: [
+      'Busco opiniões antes de decidir.',
+      'Valorizo participação nas decisões.',
+      'Facilito debates entre áreas.',
+      'Prefiro consenso quando possível.',
+      'Evito impor soluções.'
+    ]
+  },
+  {
+    id: 'pacesetting', emoji: '⚡', nome: 'Pacesetting (Alta Performance)',
+    cor: '#F39C12',
+    descricao: 'Quem lidera com esse estilo estabelece padrões altíssimos e espera que a equipe acompanhe seu ritmo. É exemplo de dedicação e entrega, mas pode gerar esgotamento e dependência se não for equilibrado com apoio e desenvolvimento.',
+    afirmacoes: [
+      'Estabeleço padrões muito altos.',
+      'Dou exemplo trabalhando intensamente.',
+      'Tenho baixa tolerância a erros.',
+      'Assumo tarefas quando alguém não entrega.',
+      'Espero autonomia imediata da equipe.'
+    ]
+  },
+  {
+    id: 'coaching', emoji: '🌱', nome: 'Coaching',
+    cor: '#2980B9',
+    descricao: 'Quem lidera com esse estilo investe no crescimento das pessoas a longo prazo. Faz perguntas, delega como oportunidade de desenvolvimento e oferece feedback focado no futuro. É o estilo que mais impacta positivamente o desenvolvimento de talentos.',
+    afirmacoes: [
+      'Invisto tempo no desenvolvimento individual.',
+      'Faço perguntas para estimular reflexão.',
+      'Delego como oportunidade de crescimento.',
+      'Dou feedback focado no longo prazo.',
+      'Acredito que desenvolver pessoas é parte central do meu papel.'
+    ]
+  }
+];
+
+// Shuffle questions
+function buildQuestions() {
+  const all = [];
+  ESTILOS.forEach(e => {
+    e.afirmacoes.forEach((af, i) => {
+      all.push({ estiloId: e.id, texto: af, idx: i });
+    });
+  });
+  // Fisher-Yates shuffle
+  for (let i = all.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [all[i], all[j]] = [all[j], all[i]];
+  }
+  return all;
+}
+
+let questions = [];
+let answers = []; // array of numbers (1-5 or null)
+let currentQ = 0;
+let scores = {};
+
+function goToScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  window.scrollTo(0, 0);
+  const showBar = id === 'screen-question';
+  document.getElementById('progress-bar-wrap').style.display = showBar ? 'block' : 'none';
+}
+
+function startTest() {
+  questions = buildQuestions();
+  answers = new Array(questions.length).fill(null);
+  currentQ = 0;
+  renderQuestion();
+  goToScreen('screen-question');
+}
+
+function renderQuestion() {
+  const q = questions[currentQ];
+  const estilo = ESTILOS.find(e => e.id === q.estiloId);
+  document.getElementById('q-label').textContent = `Pergunta ${currentQ + 1} de ${questions.length}`;
+  document.getElementById('q-text').textContent = q.texto;
+
+  // Progress bar
+  const pct = Math.round((currentQ / questions.length) * 100);
+  document.getElementById('progress-bar').style.width = pct + '%';
+
+  // Scale buttons
+  const opts = document.getElementById('scale-options');
+  opts.innerHTML = '';
+  for (let v = 1; v <= 5; v++) {
+    const btn = document.createElement('button');
+    btn.className = 'scale-btn' + (answers[currentQ] === v ? ' selected' : '');
+    btn.textContent = SCALE_LABELS[v];
+    btn.onclick = () => selectAnswer(v);
+    opts.appendChild(btn);
+  }
+
+  document.getElementById('btn-next').disabled = answers[currentQ] === null;
+}
+
+function selectAnswer(val) {
+  answers[currentQ] = val;
+  document.querySelectorAll('.scale-btn').forEach((btn, i) => {
+    btn.classList.toggle('selected', i + 1 === val);
+  });
+  document.getElementById('btn-next').disabled = false;
+}
+
+function nextQuestion() {
+  if (answers[currentQ] === null) return;
+  if (currentQ < questions.length - 1) {
+    currentQ++;
+    renderQuestion();
+    window.scrollTo(0, 0);
+  } else {
+    showResults();
+  }
+}
+
+function prevQuestion() {
+  if (currentQ > 0) {
+    currentQ--;
+    renderQuestion();
+    window.scrollTo(0, 0);
+  } else {
+    goToScreen('screen-instructions');
+  }
+}
+
+function showResults() {
+  // Calculate scores
+  scores = {};
+  ESTILOS.forEach(e => scores[e.id] = 0);
+  questions.forEach((q, i) => {
+    if (answers[i] !== null) scores[q.estiloId] += answers[i];
+  });
+
+  // Sort by score desc
+  const sorted = ESTILOS.map(e => ({ ...e, score: scores[e.id], pct: Math.round((scores[e.id] / 25) * 100) }))
+    .sort((a, b) => b.score - a.score);
+
+  // Mini chart
+  const chartEl = document.getElementById('mini-chart');
+  chartEl.innerHTML = '';
+  sorted.forEach(e => {
+    const row = document.createElement('div');
+    row.className = 'mini-row';
+    row.innerHTML = `
+      <span class="mini-label">${e.emoji} ${e.nome.split(' ')[0]}</span>
+      <div class="mini-bar-bg"><div class="mini-bar-fill" style="width:0%" data-w="${e.pct}%"></div></div>
+      <span class="mini-score">${e.score}/25</span>
+    `;
+    chartEl.appendChild(row);
+  });
+
+  // Result cards
+  const cardsEl = document.getElementById('result-cards');
+  cardsEl.innerHTML = '';
+  const topScore = sorted[0].score;
+  sorted.forEach((e, i) => {
+    const isTop = e.score === topScore;
+    const card = document.createElement('div');
+    card.className = 'result-card' + (isTop ? ' top' : '');
+    card.innerHTML = `
+      ${isTop ? `<div class="result-rank" style="margin-bottom:6px;">Estilo predominante</div>` : ''}
+      <div class="result-name-row">
+        <div class="result-name">${e.emoji} ${e.nome}</div>
+        <span class="result-pct">${e.pct}%</span>
+      </div>
+      <div class="result-bar-bg"><div class="result-bar-fill" style="width:0%" data-w="${e.pct}%"></div></div>
+      <div class="result-desc">${e.descricao}</div>
+    `;
+    cardsEl.appendChild(card);
+  });
+
+  goToScreen('screen-results');
+  document.getElementById('progress-bar').style.width = '100%';
+
+  // Animate bars
+  setTimeout(() => {
+    document.querySelectorAll('[data-w]').forEach(el => {
+      el.style.width = el.dataset.w;
+    });
+  }, 100);
+}
+
+function restartTest() {
+  goToScreen('screen-cover');
+  document.getElementById('progress-bar').style.width = '0%';
+}
+
+// PDF Generation
+function generatePDF() {
+  const btn = document.getElementById('btnDownload');
+  btn.textContent = '⏳ Gerando PDF...';
+  btn.disabled = true;
+
+  setTimeout(async () => {
+    try {
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF({ unit: 'mm', format: 'a4' });
+      const pw = 210, ph = 297;
+      const margin = 15;
+      const cw = pw - margin * 2;
+      let y = 0;
+
+      // Header
+      doc.setFillColor(0, 123, 234);
+      doc.rect(0, 0, pw, 28, 'F');
+
+      // Logo Crescimentum via URL
+      const logoUrl = 'https://i.imgur.com/fUPVKmL.png';
+      const logoImg = new Image();
+      logoImg.crossOrigin = 'anonymous';
+      await new Promise((resolve) => {
+        logoImg.onload = resolve;
+        logoImg.onerror = resolve;
+        logoImg.src = logoUrl;
+      });
+      try {
+        const canvas = document.createElement('canvas');
+        canvas.width = logoImg.naturalWidth || 200;
+        canvas.height = logoImg.naturalHeight || 50;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(logoImg, 0, 0);
+        const logoData = canvas.toDataURL('image/png');
+        // altura 8mm, largura proporcional
+        const logoH = 8;
+        const logoW = logoH * (canvas.width / canvas.height);
+        doc.addImage(logoData, 'PNG', margin, 4, logoW, logoH);
+      } catch(e) {}
+
+      // Título
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(14);
+      doc.setTextColor(255, 255, 255);
+      doc.text('Assessment: Estilos de Liderança', margin, 22);
+      y = 38;
+
+      // Subtitle
+      doc.setFontSize(9);
+      doc.setTextColor(33, 0, 0);
+      doc.setFont('helvetica', 'normal');
+      const sub = 'O estilo com maior pontuação representa sua tendência predominante. Lideranças eficazes transitam entre diferentes estilos com consciência e intencionalidade.';
+      const subLines = doc.splitTextToSize(sub, cw);
+      doc.text(subLines, margin, y);
+      y += subLines.length * 5 + 6;
+
+      // Sorted styles
+      const sorted = ESTILOS.map(e => ({ ...e, score: scores[e.id], pct: Math.round((scores[e.id] / 25) * 100) }))
+        .sort((a, b) => b.score - a.score);
+      const rankLabels = ['Estilo Predominante', '2o Estilo', '3o Estilo', '4o Estilo', '5o Estilo', '6o Estilo'];
+
+      sorted.forEach((e, i) => {
+        const descLines = doc.splitTextToSize(e.descricao, cw - 6);
+        const cardH = 40 + descLines.length * 4;
+
+        if (y + cardH > ph - 20) { doc.addPage(); y = 20; }
+
+        if (i === 0) {
+          doc.setFillColor(235, 245, 255);
+          doc.setDrawColor(0, 123, 234);
+        } else {
+          doc.setFillColor(250, 250, 250);
+          doc.setDrawColor(220, 220, 220);
+        }
+        doc.roundedRect(margin, y, cw, cardH, 3, 3, 'FD');
+
+        // Rank label
+        doc.setFontSize(8);
+        doc.setFont('helvetica', 'bold');
+        doc.setTextColor(i === 0 ? 0 : 100, i === 0 ? 123 : 100, i === 0 ? 234 : 100);
+        if (i === 0) doc.text(rankLabels[0].toUpperCase(), margin + 4, y + 7);
+
+        // Pct
+        const pctTxt = e.pct + '%';
+        const pctW = doc.getTextWidth(pctTxt);
+        doc.setTextColor(0, 123, 234);
+        doc.text(pctTxt, margin + cw - 4 - pctW, y + 7);
+
+        // Name
+        doc.setFontSize(12);
+        doc.setFont('helvetica', 'bold');
+        doc.setTextColor(33, 0, 0);
+        doc.text(e.nome, margin + 4, y + 15);
+
+        // Bar
+        const barY = y + 19;
+        doc.setFillColor(224, 224, 224);
+        doc.roundedRect(margin + 4, barY, cw - 8, 2.5, 1, 1, 'F');
+        if (i === 0) doc.setFillColor(0, 123, 234);
+        else doc.setFillColor(153, 153, 153);
+        const bw = ((cw - 8) * e.pct) / 100;
+        if (bw > 0) doc.roundedRect(margin + 4, barY, bw, 2.5, 1, 1, 'F');
+
+        // Score text
+        doc.setFontSize(8);
+        doc.setFont('helvetica', 'normal');
+        doc.setTextColor(100, 100, 100);
+        doc.text('Pontuação: ' + e.score + ' / 25', margin + 4, barY + 6);
+
+        // Description
+        doc.setFontSize(8.5);
+        doc.setTextColor(100, 100, 100);
+        doc.text(descLines, margin + 4, barY + 12);
+
+        y += cardH + 5;
+      });
+
+      // Footer on all pages
+      const totalPages = doc.getNumberOfPages();
+      for (let p = 1; p <= totalPages; p++) {
+        doc.setPage(p);
+        doc.setFillColor(0, 123, 234);
+        doc.rect(0, ph - 10, pw, 10, 'F');
+        doc.setFontSize(8);
+        doc.setFont('helvetica', 'normal');
+        doc.setTextColor(255, 255, 255);
+        const pt = `Página ${p} / ${totalPages}`;
+        const ptw = doc.getTextWidth(pt);
+        doc.text(pt, (pw - ptw) / 2, ph - 4);
+      }
+
+      doc.save('Assessment Estilos de Lideranca - Resultado.pdf');
+    } catch (err) {
+      console.error(err);
+      alert('Erro ao gerar PDF. Tente novamente.');
+    }
+    btn.textContent = 'Baixar resultado em PDF';
+    btn.disabled = false;
+  }, 100);
+}
+</script>
+</body>
+</html>
