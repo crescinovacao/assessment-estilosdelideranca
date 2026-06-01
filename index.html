@@ -118,7 +118,7 @@
   .result-card.top .result-rank { color: var(--accent); }
   .result-name-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
   .result-pct { font-size: 14px; font-weight: 700; color: var(--accent); }
-  .result-name { font-family: 'Raleway', sans-serif; font-weight: 700; font-size: 17px; color: var(--text); display: flex; align-items: center; gap: 8px; }
+  .result-name { font-family: 'Raleway', sans-serif; font-weight: 700; font-size: clamp(15px, 4vw, 17px); color: var(--text); display: flex; align-items: center; gap: 8px; }
   .result-bar-bg { background: #e0e0e0; border-radius: 5px; height: 10px; margin-bottom: 10px; overflow: hidden; }
   .result-bar-fill { height: 100%; border-radius: 5px; background: #999; transition: width 0.7s ease; }
   .result-card.top .result-bar-fill { background: var(--accent); }
@@ -127,15 +127,21 @@
   /* Score summary chart */
   .mini-chart { display: flex; flex-direction: column; gap: 8px; margin: 20px 0; }
   .mini-row { display: flex; align-items: center; gap: 10px; }
-  .mini-label { font-size: 12px; font-weight: 600; color: var(--text); min-width: 110px; }
+  .mini-label { font-size: 12px; font-weight: 600; color: var(--text); min-width: 90px; max-width: 110px; }
   .mini-bar-bg { flex: 1; background: #e8e8e8; border-radius: 4px; height: 14px; overflow: hidden; }
   .mini-bar-fill { height: 100%; border-radius: 4px; background: var(--accent); transition: width 0.7s ease; }
   .mini-score { font-size: 12px; color: var(--text-light); min-width: 36px; text-align: right; }
 
   @media (max-width: 480px) {
     .screen { padding: 36px 16px 80px; }
-    .scale-btn { width: 44px; height: 44px; font-size: 16px; }
-    .scale-options { gap: 6px; }
+    .scale-btn { width: 100%; font-size: 15px; padding: 13px 16px; }
+    .scale-options { gap: 8px; }
+    .mini-label { font-size: 11px; min-width: 80px; }
+    .mini-score { font-size: 11px; }
+    .result-card { padding: 16px; }
+    .btn-primary { font-size: 14px; padding: 12px 20px; }
+    .result-intro { font-size: 13px; }
+    .cover-meta { font-size: 12px; }
   }
 </style>
 </head>
@@ -489,15 +495,16 @@ function generatePDF() {
       // Sorted styles
       const sorted = ESTILOS.map(e => ({ ...e, score: scores[e.id], pct: Math.round((scores[e.id] / 25) * 100) }))
         .sort((a, b) => b.score - a.score);
-      const rankLabels = ['Estilo Predominante', '2o Estilo', '3o Estilo', '4o Estilo', '5o Estilo', '6o Estilo'];
+      const topScore = sorted[0].score;
 
       sorted.forEach((e, i) => {
+        const isTop = e.score === topScore;
         const descLines = doc.splitTextToSize(e.descricao, cw - 6);
         const cardH = 40 + descLines.length * 4;
 
         if (y + cardH > ph - 20) { doc.addPage(); y = 20; }
 
-        if (i === 0) {
+        if (isTop) {
           doc.setFillColor(235, 245, 255);
           doc.setDrawColor(0, 123, 234);
         } else {
@@ -509,8 +516,10 @@ function generatePDF() {
         // Rank label
         doc.setFontSize(8);
         doc.setFont('helvetica', 'bold');
-        doc.setTextColor(i === 0 ? 0 : 100, i === 0 ? 123 : 100, i === 0 ? 234 : 100);
-        if (i === 0) doc.text(rankLabels[0].toUpperCase(), margin + 4, y + 7);
+        if (isTop) {
+          doc.setTextColor(0, 123, 234);
+          doc.text('ESTILO PREDOMINANTE', margin + 4, y + 7);
+        }
 
         // Pct
         const pctTxt = e.pct + '%';
@@ -528,7 +537,7 @@ function generatePDF() {
         const barY = y + 19;
         doc.setFillColor(224, 224, 224);
         doc.roundedRect(margin + 4, barY, cw - 8, 2.5, 1, 1, 'F');
-        if (i === 0) doc.setFillColor(0, 123, 234);
+        if (isTop) doc.setFillColor(0, 123, 234);
         else doc.setFillColor(153, 153, 153);
         const bw = ((cw - 8) * e.pct) / 100;
         if (bw > 0) doc.roundedRect(margin + 4, barY, bw, 2.5, 1, 1, 'F');
